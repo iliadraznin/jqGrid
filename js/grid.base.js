@@ -2875,29 +2875,41 @@ $.jgrid.extend({
 	},
 	remapColumns : function(permutation, updateCells, keepHeader)
 	{
+		// check to see there is a reason to remap
+		var pl = permutation.length, i, remap = false;
+		for (i = 0; i < pl; i++) {
+			if (permutation[i] != i) remap = true;
+		}
+		
+		if (!remap) return;
+		
 		function resortArray(a) {
-			var ac;
-			if (a.length) {
-				ac = $.makeArray(a);
-			} else {
-				ac = $.extend({}, a);
+			var ac = a.length ? $.makeArray(a) : $.extend({}, a);
+			// replace $.each with for loop
+			for (i = 0; i < pl; i++) {
+				a[i] = ac[permutation[i]];
 			}
-			$.each(permutation, function(i) {
-				a[i] = ac[this];
-			});
 		}
 		var ts = this.get(0);
 		function resortRows(parent, clobj) {
-			$(">tr"+(clobj||""), parent).each(function() {
-				var row = this;
-				var elems = $.makeArray(row.cells);
-				$.each(permutation, function() {
-					var e = elems[this];
-					if (e) {
-						row.appendChild(e);
+			var rows = parent.find(">tr" + (clobj || "")),
+				rl = rows.length,
+				ri,
+				row,
+				cells,
+				cell;
+			    
+			for (ri = 0; ri < rl; ri++) {
+				row = rows[ri];
+				cells = $.makeArray(row.cells);
+				
+				for (i = 0; i < pl; i++) {
+					cell = cells[permutation[i]];
+					if (cell) {
+						row.appendChild(cell);
 					}
-				});
-			});
+				}
+			}
 		}
 		resortArray(ts.p.colModel);
 		resortArray(ts.p.colNames);
